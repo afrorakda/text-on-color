@@ -20,10 +20,10 @@
         }
 
         * {
-            /* 長押し選択を徹底排除 */
             -webkit-user-select: none;
             user-select: none;
             -webkit-touch-callout: none;
+            box-sizing: border-box;
         }
 
         body {
@@ -39,11 +39,17 @@
             overflow-x: hidden;
         }
 
+        /* 画面全体をタップ判定エリアにする */
+        #tap-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+        }
+
         .container {
             width: 100%;
             max-width: 420px;
             padding: 40px 20px;
-            box-sizing: border-box;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -51,17 +57,15 @@
             z-index: 10;
         }
 
-        /* 背景に馴染む入力カード */
         .input-card {
             background: #fff;
             padding: 25px 20px;
             border-radius: var(--radius);
             width: 100%;
-            box-sizing: border-box;
             margin-bottom: 30px;
             color: var(--main);
             transition: all 0.3s ease;
-            pointer-events: auto; /* ここだけは操作可能 */
+            pointer-events: auto; /* カード内は操作可能 */
         }
         .input-card.light-bg { box-shadow: 0 20px 50px rgba(0,0,0,0.15); border: 1px solid #eee; }
         .input-card.dark-bg { background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
@@ -94,7 +98,7 @@
             color: var(--main) !important;
             outline: none;
             -webkit-appearance: none;
-            -webkit-user-select: text; /* 入力だけはテキスト選択許可 */
+            -webkit-user-select: text;
             user-select: text;
         }
 
@@ -111,7 +115,6 @@
             padding: 4px; box-sizing: border-box;
         }
 
-        /* プレビュー */
         .main-preview {
             width: 100%; text-align: left; margin-bottom: 40px; pointer-events: none;
         }
@@ -122,7 +125,6 @@
             font-weight: 800; font-size: 1rem; border: 3px solid currentColor;
         }
 
-        /* ハーフ＆ハーフ */
         .suggestion-grid {
             display: grid; grid-template-columns: repeat(2, 1fr);
             gap: 15px; width: 100%; margin-bottom: 40px;
@@ -132,6 +134,7 @@
             position: relative; box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             overflow: hidden; display: flex; flex-direction: column; border: 1px solid #eee;
             transition: transform 0.1s;
+            pointer-events: auto;
         }
         .suggest-item:active { transform: scale(0.95); }
 
@@ -159,10 +162,10 @@
 
         footer { 
             margin-top: auto; padding: 40px 0; font-size: 12px; 
-            text-align: center; font-weight: 600; 
+            text-align: center; font-weight: 600; position: relative; z-index: 10;
         }
         footer a { color: inherit; text-decoration: underline; }
-        .footer-btns { margin-top: 20px; }
+        .footer-btns { margin-top: 20px; pointer-events: auto; }
         .kofi-btn {
             display: inline-block; background: #fff; color: #000;
             padding: 14px 28px; border-radius: var(--radius);
@@ -187,9 +190,11 @@
         .close-x { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #888; cursor: pointer; }
     </style>
 </head>
-<body onclick="toggleTheme()">
+<body id="body">
 
-<div class="container" onclick="event.stopPropagation()">
+<div id="tap-overlay" onclick="toggleTheme()"></div>
+
+<div class="container">
     <div class="input-card" id="inputCard">
         <h1>Text on Color</h1>
         <p class="subtitle">Contrast visualizer for UI.</p>
@@ -245,6 +250,7 @@
 
     function handleTextInput() {
         let val = hexInput.value.replace(/[^0-9a-fA-F]/g, '');
+        hexInput.value = val;
         if (val.length === 6) {
             pickerInput.value = '#' + val;
             updateUI(true);
@@ -304,7 +310,7 @@
             const card = document.createElement('div');
             card.className = 'suggest-item';
             card.onclick = (e) => {
-                e.stopPropagation();
+                e.stopPropagation(); // コピー時は背景タップ（切り替え）を発動させない
                 copyText(res.hex, card);
             };
             
@@ -323,6 +329,7 @@
     }
 
     function toggleTheme() {
+        // 白 ⇄ 黒 パチパチ切り替え
         currentTextColor = (currentTextColor === "#FFFFFF" || currentTextColor === "#F5F5F5") ? "#000000" : "#FFFFFF";
         updateUI(false);
     }
