@@ -47,32 +47,34 @@
             display: flex;
             gap: 12px;
             align-items: center;
-            position: relative;
         }
 
+        /* 入力窓のトゲ抜き構造 */
         .hex-input-container {
             flex: 1;
             position: relative;
             display: flex;
             align-items: center;
+            background: var(--input-bg);
+            border: 2px solid var(--accent);
+            border-radius: var(--radius);
         }
 
-        .prefix {
+        .hex-input-container::before {
+            content: '#';
             position: absolute;
             left: 15px;
             font-size: 1.4rem;
             font-weight: 800;
             color: var(--main);
             pointer-events: none;
-            z-index: 2;
         }
 
         input[type="text"] {
             width: 100%;
             padding: 20px 45px 20px 35px;
-            border: 2px solid var(--accent);
-            border-radius: var(--radius);
-            background: var(--input-bg);
+            border: none;
+            background: transparent;
             font-size: 1.4rem;
             font-weight: 800;
             color: var(--main) !important;
@@ -80,14 +82,11 @@
             outline: none;
             -webkit-appearance: none;
             -webkit-text-fill-color: var(--main) !important;
-            opacity: 1 !important;
         }
 
         .clear-btn {
             position: absolute;
             right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
             background: none;
             border: none;
             color: #888;
@@ -96,15 +95,12 @@
             cursor: pointer;
             padding: 5px;
             z-index: 3;
-            display: none;
         }
-        .clear-btn.active { display: block; }
 
         .picker-btn-wrapper {
             width: 65px;
             height: 64px;
             flex-shrink: 0;
-            position: relative;
         }
 
         input[type="color"] {
@@ -122,14 +118,16 @@
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 6px; }
         input[type="color"]::-webkit-color-swatch { border-radius: 10px; border: none; }
 
-        /* Preview Section */
+        /* Preview Area */
         .preview-card {
             margin-top: 30px;
             padding: 30px 20px;
             border-radius: var(--radius);
             text-align: left;
             transition: background-color 0.2s;
-            border: 1px solid #eee;
+            border: 2px solid #eee;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         .preview-label { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 20px; opacity: 0.6; }
@@ -143,7 +141,6 @@
             font-weight: 800;
             font-size: 0.9rem;
             border: 2px solid;
-            margin-bottom: 10px;
         }
 
         /* Suggestion Grid */
@@ -161,21 +158,29 @@
             border-radius: var(--radius);
             cursor: pointer;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
         }
         .suggest-item:active { transform: scale(0.96); }
         .suggest-color { font-size: 1.1rem; font-weight: 800; display: block; margin-bottom: 4px; }
         .suggest-meta { font-size: 0.7rem; font-weight: 700; color: var(--text-gray); text-transform: uppercase; }
         .winner-tag { 
-            background: #000; color: #fff; font-size: 0.6rem; font-weight: 900; 
+            background: var(--main); color: #fff; font-size: 0.6rem; font-weight: 900; 
             padding: 2px 6px; border-radius: 4px; margin-bottom: 8px; display: inline-block;
         }
 
-        #toast {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+        /* Card Local Toast */
+        .card-toast {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: var(--main); color: #fff;
-            padding: 12px 24px; border-radius: 20px; font-size: 0.9rem; font-weight: 700;
-            opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 1000;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; font-weight: 800;
+            opacity: 0; transition: opacity 0.2s; pointer-events: none;
         }
+        .card-toast.active { opacity: 1; }
 
         footer { margin-top: 60px; font-size: 12px; color: #777; line-height: 1.8; font-weight: 500; }
         footer a { color: inherit; text-decoration: underline; }
@@ -204,8 +209,6 @@
 </head>
 <body>
 
-<div id="toast">Copied!</div>
-
 <div class="container">
     <h1>Text on Color</h1>
     <p class="subtitle">Find the perfect text color instantly.</p>
@@ -214,9 +217,8 @@
         <span class="input-label">Background Color</span>
         <div class="color-input-wrapper">
             <div class="hex-input-container">
-                <span class="prefix">#</span>
                 <input type="text" id="hexInput" value="333333" maxlength="6" inputmode="url" autocapitalize="characters" oninput="updateFromText()">
-                <button class="clear-btn active" id="clr-btn" onclick="clearInput()">×</button>
+                <button class="clear-btn" onclick="clearInput()">×</button>
             </div>
             <div class="picker-btn-wrapper">
                 <input type="color" id="pickerInput" value="#333333" oninput="updateFromPicker()">
@@ -226,9 +228,9 @@
 
     <div class="preview-card" id="previewCard">
         <div class="preview-label">Live Preview</div>
-        <h2 class="preview-h" id="prevH">Heading Text</h2>
-        <p class="preview-p" id="prevP">This is how your body text will look on this background. Clear and readable.</p>
-        <div class="preview-btn" id="prevBtn">Action Button</div>
+        <h2 class="preview-h">Heading Text</h2>
+        <p class="preview-p">This is how your body text will look on this background. Clear and readable.</p>
+        <div class="preview-btn" id="prevBtn">Sample Button</div>
     </div>
 
     <div class="suggestion-grid" id="suggestionGrid"></div>
@@ -257,15 +259,14 @@
 <script>
     const hexInput = document.getElementById('hexInput');
     const pickerInput = document.getElementById('pickerInput');
-    const clrBtn = document.getElementById('clr-btn');
     const previewCard = document.getElementById('previewCard');
     const suggestionGrid = document.getElementById('suggestionGrid');
-    const toast = document.getElementById('toast');
 
     function updateFromText() {
-        let val = hexInput.value.replace(/#/g, '').replace(/[^0-9a-fA-F]/g, '').toUpperCase();
+        // 英数字以外を排除（#も自動的に消える）
+        let val = hexInput.value.replace(/[^0-9a-fA-F]/g, '').toUpperCase();
         hexInput.value = val;
-        updateClearBtn();
+        
         if (val.length === 6) {
             pickerInput.value = '#' + val;
             analyzeColor();
@@ -275,17 +276,11 @@
     function updateFromPicker() {
         const hex = pickerInput.value.toUpperCase();
         hexInput.value = hex.replace('#', '');
-        updateClearBtn();
         analyzeColor();
-    }
-
-    function updateClearBtn() {
-        clrBtn.classList.toggle('active', hexInput.value.length > 0);
     }
 
     function clearInput() {
         hexInput.value = '';
-        updateClearBtn();
         hexInput.focus();
     }
 
@@ -293,7 +288,6 @@
         const bgHex = pickerInput.value;
         const rgb = hexToRgb(bgHex);
         
-        // WCAG Candidates
         const candidates = [
             { name: 'Pure White', hex: '#FFFFFF' },
             { name: 'Pure Black', hex: '#000000' },
@@ -307,22 +301,20 @@
             return { ...c, ratio };
         });
 
-        // Sort by ratio to find the best
         results.sort((a, b) => b.ratio - a.ratio);
         const winner = results[0];
 
-        // Apply to Preview
         previewCard.style.backgroundColor = bgHex;
         previewCard.style.color = winner.hex;
-        document.getElementById('prevBtn').style.borderColor = winner.hex;
-        document.getElementById('prevBtn').style.color = winner.hex;
+        const btn = document.getElementById('prevBtn');
+        btn.style.borderColor = winner.hex;
+        btn.style.color = winner.hex;
 
-        // Render Suggestions
         suggestionGrid.innerHTML = '';
         results.forEach((res, index) => {
             const card = document.createElement('div');
             card.className = 'suggest-item';
-            card.onclick = () => copyText(res.hex);
+            card.onclick = () => copyText(res.hex, card);
             
             const isWinner = index === 0;
             const scoreLabel = res.ratio.toFixed(1) + ':1';
@@ -331,12 +323,11 @@
                 ${isWinner ? '<span class="winner-tag">BEST CHOICE</span>' : ''}
                 <span class="suggest-color" style="color: ${res.hex}">${res.hex}</span>
                 <span class="suggest-meta">${res.name}<br>${scoreLabel}</span>
+                <div class="card-toast">Copied!</div>
             `;
             suggestionGrid.appendChild(card);
         });
     }
-
-    // --- Math Helpers ---
 
     function getContrastRatio(rgb1, rgb2) {
         const l1 = getLuminance(rgb1.r, rgb1.g, rgb1.b);
@@ -359,18 +350,18 @@
         return { r, g, b };
     }
 
-    async function copyText(txt) {
+    async function copyText(txt, card) {
         try {
             await navigator.clipboard.writeText(txt);
-            toast.style.opacity = '1';
-            setTimeout(() => toast.style.opacity = '0', 1500);
+            const toast = card.querySelector('.card-toast');
+            toast.classList.add('active');
+            setTimeout(() => toast.classList.remove('active'), 1000);
         } catch (err) {}
     }
 
     function showModal() { document.getElementById('modal').style.display = 'flex'; }
     function hideModal() { document.getElementById('modal').style.display = 'none'; }
 
-    // Init
     analyzeColor();
 </script>
 
