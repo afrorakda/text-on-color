@@ -13,11 +13,17 @@
             --main: #333;
             --bg: #fff;
             --accent: #ccc;
-            --input-bg: rgba(255, 255, 255, 1);
             --radius: 15px;
             --text-gray: #666;
             --current-bg: #333;
             --current-text: #fff;
+        }
+
+        * {
+            /* 長押し選択を徹底排除 */
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
         }
 
         body {
@@ -30,7 +36,7 @@
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
             transition: background-color 0.3s ease, color 0.3s ease;
-            cursor: pointer; /* タップ可能であることを示す */
+            overflow-x: hidden;
         }
 
         .container {
@@ -42,12 +48,12 @@
             flex-direction: column;
             align-items: center;
             position: relative;
-            z-index: 1;
+            z-index: 10;
         }
 
-        /* 入力セクション：背景色に合わせて動的に変化 */
+        /* 背景に馴染む入力カード */
         .input-card {
-            background: var(--input-bg);
+            background: #fff;
             padding: 25px 20px;
             border-radius: var(--radius);
             width: 100%;
@@ -55,21 +61,15 @@
             margin-bottom: 30px;
             color: var(--main);
             transition: all 0.3s ease;
-            pointer-events: auto; /* カード内はタップイベントを止めない */
+            pointer-events: auto; /* ここだけは操作可能 */
         }
-        /* 明るい背景時：影を強く */
-        .input-card.light-mode { box-shadow: 0 15px 40px rgba(0,0,0,0.15); border: 1px solid #eee; }
-        /* 暗い背景時：透過させる */
-        .input-card.dark-mode { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .input-card.light-bg { box-shadow: 0 20px 50px rgba(0,0,0,0.15); border: 1px solid #eee; }
+        .input-card.dark-bg { background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 
         h1 { font-size: 1.8rem; font-weight: 800; margin: 0 0 5px 0; letter-spacing: -1px; }
-        .subtitle { font-size: 0.9rem; font-weight: 600; color: var(--text-gray); margin-bottom: 20px; }
+        .subtitle { font-size: 0.85rem; font-weight: 600; color: var(--text-gray); margin-bottom: 20px; }
 
-        .color-input-wrapper {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
+        .color-input-wrapper { display: flex; gap: 12px; align-items: center; }
 
         .hex-input-container {
             flex: 1;
@@ -80,14 +80,9 @@
             border: 2px solid var(--accent);
             border-radius: var(--radius);
         }
-
         .hex-input-container::before {
-            content: '#';
-            position: absolute;
-            left: 15px;
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: var(--main);
+            content: '#'; position: absolute; left: 15px;
+            font-size: 1.4rem; font-weight: 800; color: var(--main);
         }
 
         input[type="text"] {
@@ -95,94 +90,59 @@
             padding: 18px 45px 18px 35px;
             border: none;
             background: transparent;
-            font-size: 1.4rem;
-            font-weight: 800;
+            font-size: 1.4rem; font-weight: 800;
             color: var(--main) !important;
             outline: none;
             -webkit-appearance: none;
+            -webkit-user-select: text; /* 入力だけはテキスト選択許可 */
+            user-select: text;
         }
 
         .clear-btn {
-            position: absolute;
-            right: 12px;
-            background: none;
-            border: none;
-            color: #bbb;
-            font-size: 1.4rem;
-            font-weight: 800;
-            cursor: pointer;
-            padding: 5px;
+            position: absolute; right: 12px;
+            background: none; border: none; color: #bbb;
+            font-size: 1.4rem; font-weight: 800; cursor: pointer; padding: 5px;
         }
 
         .picker-btn-wrapper { width: 60px; height: 60px; flex-shrink: 0; }
         input[type="color"] {
-            width: 100%; height: 100%;
-            border: 2px solid var(--accent);
-            border-radius: var(--radius);
-            background: #fff;
-            cursor: pointer;
-            padding: 4px;
-            box-sizing: border-box;
+            width: 100%; height: 100%; border: 2px solid var(--accent);
+            border-radius: var(--radius); background: #fff; cursor: pointer;
+            padding: 4px; box-sizing: border-box;
         }
 
-        /* プレビューエリア */
+        /* プレビュー */
         .main-preview {
-            width: 100%;
-            text-align: left;
-            margin-bottom: 40px;
-            user-select: none;
-            -webkit-user-select: none;
-            pointer-events: none; /* 背後のbodyタップを邪魔しない */
+            width: 100%; text-align: left; margin-bottom: 40px; pointer-events: none;
         }
-
-        .preview-h { font-size: 2.4rem; font-weight: 900; margin: 0 0 10px 0; line-height: 1; }
-        .preview-p { font-size: 1.1rem; font-weight: 600; margin: 0 0 30px 0; line-height: 1.4; opacity: 0.9; }
+        .preview-h { font-size: 2.5rem; font-weight: 900; margin: 0 0 10px 0; line-height: 1; }
+        .preview-p { font-size: 1.1rem; font-weight: 600; margin: 0 0 30px 0; line-height: 1.4; opacity: 0.85; }
         .preview-btn {
-            display: inline-block;
-            padding: 16px 32px;
-            border-radius: 12px;
-            font-weight: 800;
-            font-size: 1rem;
-            border: 3px solid currentColor;
+            display: inline-block; padding: 16px 32px; border-radius: 12px;
+            font-weight: 800; font-size: 1rem; border: 3px solid currentColor;
         }
 
-        /* ハーフ＆ハーフ デザインの候補カード */
+        /* ハーフ＆ハーフ */
         .suggestion-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            width: 100%;
-            margin-bottom: 40px;
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 15px; width: 100%; margin-bottom: 40px;
         }
-
         .suggest-item {
-            background: #fff;
-            border-radius: var(--radius);
-            cursor: pointer;
-            position: relative;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid #eee;
+            background: #fff; border-radius: var(--radius); cursor: pointer;
+            position: relative; box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            overflow: hidden; display: flex; flex-direction: column; border: 1px solid #eee;
+            transition: transform 0.1s;
         }
-        .suggest-item:active { transform: scale(0.96); }
+        .suggest-item:active { transform: scale(0.95); }
 
         .half-bg { height: 50px; width: 100%; transition: background 0.3s; }
         .half-text { 
-            height: 50px; width: 100%; 
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.1rem; font-weight: 800;
+            height: 50px; width: 100%; display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; font-weight: 900;
         }
-
         .suggest-info {
-            background: #fff;
-            padding: 10px;
-            color: var(--main);
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-align: center;
-            border-top: 1px solid #eee;
+            background: #fff; padding: 10px; color: var(--main);
+            font-size: 0.75rem; font-weight: 800; text-align: center;
         }
         .winner-tag { 
             background: var(--main); color: #fff; font-size: 0.6rem; font-weight: 900; 
@@ -190,20 +150,16 @@
         }
 
         .card-toast {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--main); color: #fff;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1rem; font-weight: 800;
-            opacity: 0; transition: opacity 0.2s; pointer-events: none;
-            z-index: 10;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--main); color: #fff; display: flex; align-items: center;
+            justify-content: center; font-size: 1rem; font-weight: 800;
+            opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 20;
         }
         .card-toast.active { opacity: 1; }
 
         footer { 
             margin-top: auto; padding: 40px 0; font-size: 12px; 
-            color: inherit; line-height: 1.8; font-weight: 600; 
-            text-align: center;
+            text-align: center; font-weight: 600; 
         }
         footer a { color: inherit; text-decoration: underline; }
         .footer-btns { margin-top: 20px; }
@@ -211,18 +167,18 @@
             display: inline-block; background: #fff; color: #000;
             padding: 14px 28px; border-radius: var(--radius);
             text-decoration: none; font-weight: 800; font-size: 15px; margin-bottom: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
         .home-btn {
             display: block; width: 70%; margin: 0 auto; background: rgba(255,255,255,0.2);
             color: inherit; border: 2px solid currentColor; padding: 12px;
             border-radius: var(--radius); font-weight: 800; font-size: 14px; cursor: pointer;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
         }
 
         #modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 100; color: #000;
+            background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 100; color: #000;
         }
         .modal-content {
             background: #fff; width: 85%; max-width: 340px; padding: 35px;
@@ -249,8 +205,8 @@
     </div>
 
     <div class="main-preview" id="mainPreview">
-        <h2 class="preview-h">Perfect Contrast.</h2>
-        <p class="preview-p">Tap anywhere to toggle text color. Find your favorite tone.</p>
+        <h2 class="preview-h" id="prevTitle">Perfect Contrast.</h2>
+        <p class="preview-p">Tap anywhere to toggle text color. Find the best combination for your design.</p>
         <div class="preview-btn">Sample Button</div>
     </div>
 
@@ -282,25 +238,33 @@
     const pickerInput = document.getElementById('pickerInput');
     const suggestionGrid = document.getElementById('suggestionGrid');
     const inputCard = document.getElementById('inputCard');
+    const prevTitle = document.getElementById('prevTitle');
     
     let currentTextColor = "#FFFFFF";
+    const messages = ["Perfect Contrast.", "Web Safe.", "WCAG AA.", "Design First.", "Clean UI.", "High Visibility."];
 
     function handleTextInput() {
         let val = hexInput.value.replace(/[^0-9a-fA-F]/g, '');
         if (val.length === 6) {
             pickerInput.value = '#' + val;
             updateUI(true);
+            shuffleMessage();
         }
     }
 
     function handlePickerInput() {
         hexInput.value = pickerInput.value.replace('#', '').toUpperCase();
         updateUI(true);
+        shuffleMessage();
     }
 
     function clearInput() {
         hexInput.value = '';
         hexInput.focus();
+    }
+
+    function shuffleMessage() {
+        prevTitle.innerText = messages[Math.floor(Math.random() * messages.length)];
     }
 
     function updateUI(autoDetermineText = false) {
@@ -325,19 +289,16 @@
             currentTextColor = results[0].hex;
         }
 
-        // 画面全体の更新
         document.body.style.backgroundColor = bgHex;
         document.body.style.color = currentTextColor;
 
-        // 入力カードのスタイリング調整
         const luminance = getLuminance(rgb.r, rgb.g, rgb.b);
         if (luminance > 0.5) {
-            inputCard.className = "input-card light-mode";
+            inputCard.className = "input-card light-bg";
         } else {
-            inputCard.className = "input-card dark-mode";
+            inputCard.className = "input-card dark-bg";
         }
 
-        // ハーフ＆ハーフ カード描画
         suggestionGrid.innerHTML = '';
         results.forEach((res, index) => {
             const card = document.createElement('div');
@@ -353,7 +314,7 @@
                 <div class="suggest-info">
                     ${index === 0 ? '<span class="winner-tag">BEST</span>' : ''}
                     <div>${res.hex}</div>
-                    <div style="opacity:0.5">${res.ratio.toFixed(1)}:1</div>
+                    <div style="opacity:0.4">${res.ratio.toFixed(1)}:1</div>
                 </div>
                 <div class="card-toast">Copied!</div>
             `;
@@ -362,7 +323,6 @@
     }
 
     function toggleTheme() {
-        // 白 ⇄ 黒 パチパチ切り替え
         currentTextColor = (currentTextColor === "#FFFFFF" || currentTextColor === "#F5F5F5") ? "#000000" : "#FFFFFF";
         updateUI(false);
     }
@@ -393,7 +353,11 @@
             await navigator.clipboard.writeText(txt);
             const toast = card.querySelector('.card-toast');
             toast.classList.add('active');
-            setTimeout(() => toast.classList.remove('active'), 1000);
+            card.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                toast.classList.remove('active');
+                card.style.transform = '';
+            }, 800);
         } catch (err) {}
     }
 
