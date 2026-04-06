@@ -13,7 +13,7 @@
             --main: #333;
             --bg: #fff;
             --accent: #ccc;
-            --input-bg: rgba(255, 255, 255, 0.9);
+            --input-bg: rgba(255, 255, 255, 1);
             --radius: 15px;
             --text-gray: #666;
             --current-bg: #333;
@@ -30,6 +30,7 @@
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
             transition: background-color 0.3s ease, color 0.3s ease;
+            cursor: pointer; /* タップ可能であることを示す */
         }
 
         .container {
@@ -40,19 +41,26 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            position: relative;
+            z-index: 1;
         }
 
-        /* 入力セクション：背景色に左右されず常に読みやすく */
+        /* 入力セクション：背景色に合わせて動的に変化 */
         .input-card {
-            background: #fff;
+            background: var(--input-bg);
             padding: 25px 20px;
             border-radius: var(--radius);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             width: 100%;
             box-sizing: border-box;
             margin-bottom: 30px;
             color: var(--main);
+            transition: all 0.3s ease;
+            pointer-events: auto; /* カード内はタップイベントを止めない */
         }
+        /* 明るい背景時：影を強く */
+        .input-card.light-mode { box-shadow: 0 15px 40px rgba(0,0,0,0.15); border: 1px solid #eee; }
+        /* 暗い背景時：透過させる */
+        .input-card.dark-mode { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 
         h1 { font-size: 1.8rem; font-weight: 800; margin: 0 0 5px 0; letter-spacing: -1px; }
         .subtitle { font-size: 0.9rem; font-weight: 600; color: var(--text-gray); margin-bottom: 20px; }
@@ -61,7 +69,6 @@
             display: flex;
             gap: 12px;
             align-items: center;
-            position: relative;
         }
 
         .hex-input-container {
@@ -69,7 +76,7 @@
             position: relative;
             display: flex;
             align-items: center;
-            background: var(--input-bg);
+            background: #fafafa;
             border: 2px solid var(--accent);
             border-radius: var(--radius);
         }
@@ -93,9 +100,6 @@
             color: var(--main) !important;
             outline: none;
             -webkit-appearance: none;
-            /* iOSのお節介をオフ */
-            autocorrect: off;
-            autocapitalize: none;
         }
 
         .clear-btn {
@@ -110,10 +114,7 @@
             padding: 5px;
         }
 
-        .picker-btn-wrapper {
-            width: 60px; height: 60px; flex-shrink: 0;
-        }
-
+        .picker-btn-wrapper { width: 60px; height: 60px; flex-shrink: 0; }
         input[type="color"] {
             width: 100%; height: 100%;
             border: 2px solid var(--accent);
@@ -124,13 +125,14 @@
             box-sizing: border-box;
         }
 
-        /* プレビューエリア：画面中央で背景に乗る */
+        /* プレビューエリア */
         .main-preview {
             width: 100%;
             text-align: left;
             margin-bottom: 40px;
             user-select: none;
             -webkit-user-select: none;
+            pointer-events: none; /* 背後のbodyタップを邪魔しない */
         }
 
         .preview-h { font-size: 2.4rem; font-weight: 900; margin: 0 0 10px 0; line-height: 1; }
@@ -144,7 +146,7 @@
             border: 3px solid currentColor;
         }
 
-        /* 候補リスト：白背景でも見えるように影を強化 */
+        /* ハーフ＆ハーフ デザインの候補カード */
         .suggestion-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -155,39 +157,53 @@
 
         .suggest-item {
             background: #fff;
-            color: var(--main);
-            padding: 15px;
             border-radius: var(--radius);
             cursor: pointer;
-            text-align: center;
             position: relative;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
             border: 1px solid #eee;
         }
         .suggest-item:active { transform: scale(0.96); }
-        .suggest-color { font-size: 1.2rem; font-weight: 800; display: block; margin-bottom: 4px; }
-        .suggest-meta { font-size: 0.75rem; font-weight: 700; color: var(--text-gray); }
-        .winner-tag { 
-            background: var(--main); color: #fff; font-size: 0.65rem; font-weight: 900; 
-            padding: 3px 8px; border-radius: 6px; margin-bottom: 8px; display: inline-block;
+
+        .half-bg { height: 50px; width: 100%; transition: background 0.3s; }
+        .half-text { 
+            height: 50px; width: 100%; 
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; font-weight: 800;
         }
 
-        /* Local Toast */
+        .suggest-info {
+            background: #fff;
+            padding: 10px;
+            color: var(--main);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+        .winner-tag { 
+            background: var(--main); color: #fff; font-size: 0.6rem; font-weight: 900; 
+            padding: 2px 6px; border-radius: 4px; margin-bottom: 4px; display: inline-block;
+        }
+
         .card-toast {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             background: var(--main); color: #fff;
             display: flex; align-items: center; justify-content: center;
             font-size: 1rem; font-weight: 800;
-            border-radius: var(--radius);
             opacity: 0; transition: opacity 0.2s; pointer-events: none;
+            z-index: 10;
         }
         .card-toast.active { opacity: 1; }
 
         footer { 
             margin-top: auto; padding: 40px 0; font-size: 12px; 
             color: inherit; line-height: 1.8; font-weight: 600; 
-            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            text-align: center;
         }
         footer a { color: inherit; text-decoration: underline; }
         .footer-btns { margin-top: 20px; }
@@ -215,15 +231,15 @@
         .close-x { position: absolute; top: 15px; right: 20px; font-size: 24px; color: #888; cursor: pointer; }
     </style>
 </head>
-<body>
+<body onclick="toggleTheme()">
 
-<div class="container">
-    <div class="input-card">
+<div class="container" onclick="event.stopPropagation()">
+    <div class="input-card" id="inputCard">
         <h1>Text on Color</h1>
         <p class="subtitle">Contrast visualizer for UI.</p>
         <div class="color-input-wrapper">
             <div class="hex-input-container">
-                <input type="text" id="hexInput" value="333333" maxlength="6" inputmode="url" spellcheck="false" oninput="handleTextInput()">
+                <input type="text" id="hexInput" value="333333" maxlength="6" inputmode="email" pattern="[a-fA-F0-9]*" spellcheck="false" autocomplete="off" oninput="handleTextInput()">
                 <button class="clear-btn" onclick="clearInput()">×</button>
             </div>
             <div class="picker-btn-wrapper">
@@ -234,8 +250,8 @@
 
     <div class="main-preview" id="mainPreview">
         <h2 class="preview-h">Perfect Contrast.</h2>
-        <p class="preview-p">This is how your text looks on the current background. Readable and professional.</p>
-        <div class="preview-btn">Click Me</div>
+        <p class="preview-p">Tap anywhere to toggle text color. Find your favorite tone.</p>
+        <div class="preview-btn">Sample Button</div>
     </div>
 
     <div class="suggestion-grid" id="suggestionGrid"></div>
@@ -265,21 +281,21 @@
     const hexInput = document.getElementById('hexInput');
     const pickerInput = document.getElementById('pickerInput');
     const suggestionGrid = document.getElementById('suggestionGrid');
+    const inputCard = document.getElementById('inputCard');
+    
+    let currentTextColor = "#FFFFFF";
 
-    // iOSの予測変換との衝突を避けるため、入力中は文字置換をしない
     function handleTextInput() {
-        let val = hexInput.value;
+        let val = hexInput.value.replace(/[^0-9a-fA-F]/g, '');
         if (val.length === 6) {
-            // 6文字揃った時だけ、念のためバリデーションして実行
-            val = val.replace(/[^0-9a-fA-F]/g, '');
             pickerInput.value = '#' + val;
-            updateUI();
+            updateUI(true);
         }
     }
 
     function handlePickerInput() {
         hexInput.value = pickerInput.value.replace('#', '').toUpperCase();
-        updateUI();
+        updateUI(true);
     }
 
     function clearInput() {
@@ -287,7 +303,7 @@
         hexInput.focus();
     }
 
-    function updateUI() {
+    function updateUI(autoDetermineText = false) {
         const bgHex = pickerInput.value;
         const rgb = hexToRgb(bgHex);
         
@@ -299,34 +315,56 @@
         ];
 
         let results = candidates.map(c => {
-            const cRgb = hexToRgb(c.hex);
-            const ratio = getContrastRatio(rgb, cRgb);
+            const ratio = getContrastRatio(rgb, hexToRgb(c.hex));
             return { ...c, ratio };
         });
 
         results.sort((a, b) => b.ratio - a.ratio);
-        const winner = results[0];
+        
+        if (autoDetermineText) {
+            currentTextColor = results[0].hex;
+        }
 
-        // 画面全体の背景と文字色を更新
+        // 画面全体の更新
         document.body.style.backgroundColor = bgHex;
-        document.body.style.color = winner.hex;
+        document.body.style.color = currentTextColor;
 
-        // 候補リストの描画
+        // 入力カードのスタイリング調整
+        const luminance = getLuminance(rgb.r, rgb.g, rgb.b);
+        if (luminance > 0.5) {
+            inputCard.className = "input-card light-mode";
+        } else {
+            inputCard.className = "input-card dark-mode";
+        }
+
+        // ハーフ＆ハーフ カード描画
         suggestionGrid.innerHTML = '';
         results.forEach((res, index) => {
             const card = document.createElement('div');
             card.className = 'suggest-item';
-            card.onclick = () => copyText(res.hex, card);
+            card.onclick = (e) => {
+                e.stopPropagation();
+                copyText(res.hex, card);
+            };
             
-            const isWinner = index === 0;
             card.innerHTML = `
-                ${isWinner ? '<span class="winner-tag">BEST CHOICE</span>' : ''}
-                <span class="suggest-color" style="color: ${res.hex}">${res.hex}</span>
-                <span class="suggest-meta">${res.name}<br>${res.ratio.toFixed(1)}:1</span>
+                <div class="half-bg" style="background: ${bgHex}"></div>
+                <div class="half-text" style="background: ${res.hex}; color: ${bgHex}">ABC</div>
+                <div class="suggest-info">
+                    ${index === 0 ? '<span class="winner-tag">BEST</span>' : ''}
+                    <div>${res.hex}</div>
+                    <div style="opacity:0.5">${res.ratio.toFixed(1)}:1</div>
+                </div>
                 <div class="card-toast">Copied!</div>
             `;
             suggestionGrid.appendChild(card);
         });
+    }
+
+    function toggleTheme() {
+        // 白 ⇄ 黒 パチパチ切り替え
+        currentTextColor = (currentTextColor === "#FFFFFF" || currentTextColor === "#F5F5F5") ? "#000000" : "#FFFFFF";
+        updateUI(false);
     }
 
     function getContrastRatio(rgb1, rgb2) {
@@ -362,8 +400,7 @@
     function showModal() { document.getElementById('modal').style.display = 'flex'; }
     function hideModal() { document.getElementById('modal').style.display = 'none'; }
 
-    // Init
-    updateUI();
+    updateUI(true);
 </script>
 
 </body>
