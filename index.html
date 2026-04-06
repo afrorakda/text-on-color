@@ -13,20 +13,23 @@
             --main: #333;
             --bg: #fff;
             --accent: #ccc;
-            --input-bg: #fafafa;
+            --input-bg: rgba(255, 255, 255, 0.9);
             --radius: 15px;
             --text-gray: #666;
+            --current-bg: #333;
+            --current-text: #fff;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--main);
+            background-color: var(--current-bg);
+            color: var(--current-text);
             margin: 0;
             display: flex;
             justify-content: center;
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .container {
@@ -34,22 +37,33 @@
             max-width: 420px;
             padding: 40px 20px;
             box-sizing: border-box;
-            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -1px; }
-        .subtitle { font-size: 1rem; color: var(--text-gray); font-weight: 600; margin-bottom: 30px; }
+        /* 入力セクション：背景色に左右されず常に読みやすく */
+        .input-card {
+            background: #fff;
+            padding: 25px 20px;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 30px;
+            color: var(--main);
+        }
 
-        .input-group { position: relative; text-align: left; margin-bottom: 25px; }
-        .input-label { font-size: 0.9rem; font-weight: 800; color: var(--main); margin-left: 5px; margin-bottom: 8px; display: block; }
-        
+        h1 { font-size: 1.8rem; font-weight: 800; margin: 0 0 5px 0; letter-spacing: -1px; }
+        .subtitle { font-size: 0.9rem; font-weight: 600; color: var(--text-gray); margin-bottom: 20px; }
+
         .color-input-wrapper {
             display: flex;
             gap: 12px;
             align-items: center;
+            position: relative;
         }
 
-        /* 入力窓のトゲ抜き構造 */
         .hex-input-container {
             flex: 1;
             position: relative;
@@ -67,21 +81,21 @@
             font-size: 1.4rem;
             font-weight: 800;
             color: var(--main);
-            pointer-events: none;
         }
 
         input[type="text"] {
             width: 100%;
-            padding: 20px 45px 20px 35px;
+            padding: 18px 45px 18px 35px;
             border: none;
             background: transparent;
             font-size: 1.4rem;
             font-weight: 800;
             color: var(--main) !important;
-            box-sizing: border-box;
             outline: none;
             -webkit-appearance: none;
-            -webkit-text-fill-color: var(--main) !important;
+            /* iOSのお節介をオフ */
+            autocorrect: off;
+            autocapitalize: none;
         }
 
         .clear-btn {
@@ -89,116 +103,110 @@
             right: 12px;
             background: none;
             border: none;
-            color: #888;
+            color: #bbb;
             font-size: 1.4rem;
             font-weight: 800;
             cursor: pointer;
             padding: 5px;
-            z-index: 3;
         }
 
         .picker-btn-wrapper {
-            width: 65px;
-            height: 64px;
-            flex-shrink: 0;
+            width: 60px; height: 60px; flex-shrink: 0;
         }
 
         input[type="color"] {
             width: 100%; height: 100%;
             border: 2px solid var(--accent);
             border-radius: var(--radius);
-            background: none;
+            background: #fff;
             cursor: pointer;
-            padding: 0;
-            margin: 0;
+            padding: 4px;
             box-sizing: border-box;
-            outline: none;
-            -webkit-appearance: none;
         }
-        input[type="color"]::-webkit-color-swatch-wrapper { padding: 6px; }
-        input[type="color"]::-webkit-color-swatch { border-radius: 10px; border: none; }
 
-        /* Preview Area */
-        .preview-card {
-            margin-top: 30px;
-            padding: 30px 20px;
-            border-radius: var(--radius);
+        /* プレビューエリア：画面中央で背景に乗る */
+        .main-preview {
+            width: 100%;
             text-align: left;
-            transition: background-color 0.2s;
-            border: 2px solid #eee;
+            margin-bottom: 40px;
             user-select: none;
             -webkit-user-select: none;
         }
 
-        .preview-label { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 20px; opacity: 0.6; }
-        .preview-h { font-size: 1.8rem; font-weight: 800; margin: 0 0 10px 0; line-height: 1.1; }
-        .preview-p { font-size: 0.9rem; font-weight: 500; margin: 0 0 25px 0; line-height: 1.5; }
-        
+        .preview-h { font-size: 2.4rem; font-weight: 900; margin: 0 0 10px 0; line-height: 1; }
+        .preview-p { font-size: 1.1rem; font-weight: 600; margin: 0 0 30px 0; line-height: 1.4; opacity: 0.9; }
         .preview-btn {
             display: inline-block;
-            padding: 12px 24px;
-            border-radius: 10px;
+            padding: 16px 32px;
+            border-radius: 12px;
             font-weight: 800;
-            font-size: 0.9rem;
-            border: 2px solid;
+            font-size: 1rem;
+            border: 3px solid currentColor;
         }
 
-        /* Suggestion Grid */
+        /* 候補リスト：白背景でも見えるように影を強化 */
         .suggestion-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-top: 20px;
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 40px;
         }
 
         .suggest-item {
-            background: var(--input-bg);
-            border: 2px solid #eee;
+            background: #fff;
+            color: var(--main);
             padding: 15px;
             border-radius: var(--radius);
             cursor: pointer;
             text-align: center;
             position: relative;
-            overflow: hidden;
-            user-select: none;
-            -webkit-user-select: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid #eee;
         }
         .suggest-item:active { transform: scale(0.96); }
-        .suggest-color { font-size: 1.1rem; font-weight: 800; display: block; margin-bottom: 4px; }
-        .suggest-meta { font-size: 0.7rem; font-weight: 700; color: var(--text-gray); text-transform: uppercase; }
+        .suggest-color { font-size: 1.2rem; font-weight: 800; display: block; margin-bottom: 4px; }
+        .suggest-meta { font-size: 0.75rem; font-weight: 700; color: var(--text-gray); }
         .winner-tag { 
-            background: var(--main); color: #fff; font-size: 0.6rem; font-weight: 900; 
-            padding: 2px 6px; border-radius: 4px; margin-bottom: 8px; display: inline-block;
+            background: var(--main); color: #fff; font-size: 0.65rem; font-weight: 900; 
+            padding: 3px 8px; border-radius: 6px; margin-bottom: 8px; display: inline-block;
         }
 
-        /* Card Local Toast */
+        /* Local Toast */
         .card-toast {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             background: var(--main); color: #fff;
             display: flex; align-items: center; justify-content: center;
-            font-size: 0.9rem; font-weight: 800;
+            font-size: 1rem; font-weight: 800;
+            border-radius: var(--radius);
             opacity: 0; transition: opacity 0.2s; pointer-events: none;
         }
         .card-toast.active { opacity: 1; }
 
-        footer { margin-top: 60px; font-size: 12px; color: #777; line-height: 1.8; font-weight: 500; }
+        footer { 
+            margin-top: auto; padding: 40px 0; font-size: 12px; 
+            color: inherit; line-height: 1.8; font-weight: 600; 
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
         footer a { color: inherit; text-decoration: underline; }
-        .footer-btns { margin-top: 30px; }
+        .footer-btns { margin-top: 20px; }
         .kofi-btn {
-            display: inline-block; background: var(--main); color: #fff;
+            display: inline-block; background: #fff; color: #000;
             padding: 14px 28px; border-radius: var(--radius);
-            text-decoration: none; font-weight: bold; font-size: 15px; margin-bottom: 15px;
+            text-decoration: none; font-weight: 800; font-size: 15px; margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
         .home-btn {
-            display: block; width: 70%; margin: 0 auto; background: var(--accent);
-            color: var(--main); border: none; padding: 12px;
+            display: block; width: 70%; margin: 0 auto; background: rgba(255,255,255,0.2);
+            color: inherit; border: 2px solid currentColor; padding: 12px;
             border-radius: var(--radius); font-weight: 800; font-size: 14px; cursor: pointer;
+            backdrop-filter: blur(5px);
         }
 
         #modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 100;
+            background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 100; color: #000;
         }
         .modal-content {
             background: #fff; width: 85%; max-width: 340px; padding: 35px;
@@ -210,27 +218,24 @@
 <body>
 
 <div class="container">
-    <h1>Text on Color</h1>
-    <p class="subtitle">Find the perfect text color instantly.</p>
-
-    <div class="input-group">
-        <span class="input-label">Background Color</span>
+    <div class="input-card">
+        <h1>Text on Color</h1>
+        <p class="subtitle">Contrast visualizer for UI.</p>
         <div class="color-input-wrapper">
             <div class="hex-input-container">
-                <input type="text" id="hexInput" value="333333" maxlength="6" inputmode="url" autocapitalize="characters" oninput="updateFromText()">
+                <input type="text" id="hexInput" value="333333" maxlength="6" inputmode="url" spellcheck="false" oninput="handleTextInput()">
                 <button class="clear-btn" onclick="clearInput()">×</button>
             </div>
             <div class="picker-btn-wrapper">
-                <input type="color" id="pickerInput" value="#333333" oninput="updateFromPicker()">
+                <input type="color" id="pickerInput" value="#333333" oninput="handlePickerInput()">
             </div>
         </div>
     </div>
 
-    <div class="preview-card" id="previewCard">
-        <div class="preview-label">Live Preview</div>
-        <h2 class="preview-h">Heading Text</h2>
-        <p class="preview-p">This is how your body text will look on this background. Clear and readable.</p>
-        <div class="preview-btn" id="prevBtn">Sample Button</div>
+    <div class="main-preview" id="mainPreview">
+        <h2 class="preview-h">Perfect Contrast.</h2>
+        <p class="preview-p">This is how your text looks on the current background. Readable and professional.</p>
+        <div class="preview-btn">Click Me</div>
     </div>
 
     <div class="suggestion-grid" id="suggestionGrid"></div>
@@ -259,24 +264,22 @@
 <script>
     const hexInput = document.getElementById('hexInput');
     const pickerInput = document.getElementById('pickerInput');
-    const previewCard = document.getElementById('previewCard');
     const suggestionGrid = document.getElementById('suggestionGrid');
 
-    function updateFromText() {
-        // 英数字以外を排除（#も自動的に消える）
-        let val = hexInput.value.replace(/[^0-9a-fA-F]/g, '').toUpperCase();
-        hexInput.value = val;
-        
+    // iOSの予測変換との衝突を避けるため、入力中は文字置換をしない
+    function handleTextInput() {
+        let val = hexInput.value;
         if (val.length === 6) {
+            // 6文字揃った時だけ、念のためバリデーションして実行
+            val = val.replace(/[^0-9a-fA-F]/g, '');
             pickerInput.value = '#' + val;
-            analyzeColor();
+            updateUI();
         }
     }
 
-    function updateFromPicker() {
-        const hex = pickerInput.value.toUpperCase();
-        hexInput.value = hex.replace('#', '');
-        analyzeColor();
+    function handlePickerInput() {
+        hexInput.value = pickerInput.value.replace('#', '').toUpperCase();
+        updateUI();
     }
 
     function clearInput() {
@@ -284,7 +287,7 @@
         hexInput.focus();
     }
 
-    function analyzeColor() {
+    function updateUI() {
         const bgHex = pickerInput.value;
         const rgb = hexToRgb(bgHex);
         
@@ -304,12 +307,11 @@
         results.sort((a, b) => b.ratio - a.ratio);
         const winner = results[0];
 
-        previewCard.style.backgroundColor = bgHex;
-        previewCard.style.color = winner.hex;
-        const btn = document.getElementById('prevBtn');
-        btn.style.borderColor = winner.hex;
-        btn.style.color = winner.hex;
+        // 画面全体の背景と文字色を更新
+        document.body.style.backgroundColor = bgHex;
+        document.body.style.color = winner.hex;
 
+        // 候補リストの描画
         suggestionGrid.innerHTML = '';
         results.forEach((res, index) => {
             const card = document.createElement('div');
@@ -317,12 +319,10 @@
             card.onclick = () => copyText(res.hex, card);
             
             const isWinner = index === 0;
-            const scoreLabel = res.ratio.toFixed(1) + ':1';
-            
             card.innerHTML = `
                 ${isWinner ? '<span class="winner-tag">BEST CHOICE</span>' : ''}
                 <span class="suggest-color" style="color: ${res.hex}">${res.hex}</span>
-                <span class="suggest-meta">${res.name}<br>${scoreLabel}</span>
+                <span class="suggest-meta">${res.name}<br>${res.ratio.toFixed(1)}:1</span>
                 <div class="card-toast">Copied!</div>
             `;
             suggestionGrid.appendChild(card);
@@ -362,7 +362,8 @@
     function showModal() { document.getElementById('modal').style.display = 'flex'; }
     function hideModal() { document.getElementById('modal').style.display = 'none'; }
 
-    analyzeColor();
+    // Init
+    updateUI();
 </script>
 
 </body>
